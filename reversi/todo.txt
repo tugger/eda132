@@ -1,0 +1,8 @@
+Todo:
+bygg ett träd tre nivåer
+vilka legala moves finns, dessa blir barn till noden.
+
+
+Heuristic algo ger antalet prickar som är i "vår" färg.
+bygg två steg från current node.
+varje nod innehåller en matris som representerar "statet".
