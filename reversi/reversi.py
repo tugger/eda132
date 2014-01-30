@@ -1,18 +1,11 @@
 from node import Node
+
 DIRECTIONS = [(1,-1),(1,0),(1,1),(0,1),(-1,-1),(-1,0),(-1,-1),(0,-1)]
 
 def alph_to_num(letter):
-	"""Convert user input from letters to numbers
-		args:
-		letter -- the letter to be converted
-	"""
 	return ord(letter) - 97
 
-ef alph_to_num(letter):
-	"""Convert user input from letters to numbers
-		args:
-		letter -- the letter to be converted
-	"""
+def alph_to_num(letter):
 	return ord(letter) - 97
 
 def num_to_alph(num):
@@ -32,7 +25,6 @@ def find_legal_moves(board, curr):
 	for row in range(8):
 		for col in range(8):
 			if board[row][col] == 0:
-				print "researching: ", row,col
 				for tup in DIRECTIONS:
 					x = col + tup[0]
 					y = row + tup[1]
@@ -44,7 +36,6 @@ def find_legal_moves(board, curr):
 							legal = 0
 							break
 						elif board[y][x] == -curr:
-							print "in here"
 							legal = 1
 							x = x + tup[0]
 							y = y + tup[1]
