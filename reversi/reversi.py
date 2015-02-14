@@ -1,24 +1,14 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from node import Node
 from board import Board
 import time
 import re
 import sys
+
 DIRECTIONS = [(1,-1),(1,0),(1,1),(0,1),(-1,-1),(-1,0),(-1,1),(0,-1)]
 BLACK, WHITE = 1,-1
-"""
-def example(self):
-	board = set_up()
 
-	print_board(board)
-	legal = find_legal_moves(board,BLACK)
-	print_legal_moves(legal)
-	place_brick(board,BLACK,legal[1][0],legal[1][1])
-	print_board(board)
-	print_legal_moves(find_legal_moves(board,WHITE))
-
-	place_brick(board,WHITE,4,2)
-	print_board(board)
-"""
 def set_up():
 	board = [ [0] * 8 for i in range(8)]
 	#init white
@@ -28,8 +18,15 @@ def set_up():
 	board[4][3] = BLACK
 	board[3][4] = BLACK
 
-	b = Board(board)
+	b = Board(board,4)
 	return b
+
+def is_numerical(i):
+	try:
+		float(i)
+		return 1
+	except ValueError:
+		return 0
 
 def correct_input(s):
 	if(len(s) == 2):
@@ -40,61 +37,69 @@ def the_game(time_limit):
 	current_board= set_up()
 	current_board.print_board()
 	break_cond = 0
+	depth = 4
 	while(break_cond<2):
 		#if break_cond == 2 then break big while loop
 		break_cond =0
 		if len(current_board.find_legal_moves(WHITE)) > 0:
 			brick_placed = 0
 			while brick_placed == 0:
-				info = raw_input('Make your move, press p for current board\n')
-				if info == 'p':
-					current_board.print_board()
+				info = raw_input('Make your move\n')
 				while(not correct_input(info)):
 					info = raw_input('Wrong input. Use XY where X is a-h, Y is 1-8\n')
 				brick_placed = current_board.place_brick(WHITE,int(info[1])-1,ord(info[0])-97)
 				if brick_placed == 0:
 					print "Illegal move"
+			depth += 1
+			print "Your move"
+
+			current_board.print_board()
+			print ""
 		else:
 			break_cond += 1
 		if len(current_board.find_legal_moves(BLACK)) > 0:
 			root = Node(current_board,BLACK)
-			root = play_turn(root,time_limit)
-			root.kill_children()
+			root = play_turn(root,time_limit,depth)
+			depth += 1
 			current_board = root.board
-			print "AI made hens move"
+			print "AI's move"
+			current_board.print_board()
 		else:
 			break_cond += 1
+	winner = current_board.calc_winner()
+	if winner == "DRAW":
+		print "It's a draw"
+	else:
+		print "Winner is",winner
 
-
-
-def play_turn(root,time_limit):
+def play_turn(root,time_limit,depth):
 	endTime = int(round(time.time() * 1000)) + time_limit
 	best_choice = None
 
 	while(int(round(time.time() * 1000)) < endTime):
-		tree_builder(root,endTime)
-		best_choice = minimax(root,endTime)
-	# for c in root.children:
-	# 	c.print_state()
+		tree_builder(root,endTime,depth)
+		current_choice = minimax(root,endTime)
+		if int(round(time.time() * 1000)) < endTime:
+			best_choice = current_choice
 	return best_choice
 
 
 
-def tree_builder(node,endTime):
+def tree_builder(node,endTime,depth):
 	currTime = int(round(time.time() * 1000))
 	if currTime > endTime:
 		return
 	if len(node.children) == 0:
-		build_two_levels(node)
+		build_two_levels(node,depth)
 	else:
 		for child in node.children:
-			tree_builder(child,endTime)
+			tree_builder(child,endTime,depth)
 
 
-def build_two_levels(node):
-	node.make_children()
+def build_two_levels(node,depth):
+	node.make_children(depth)
 	for child in node.children:
-		child.make_children()
+		child.make_children(depth)
 
 
 """THE ALGORITHM!!"""
@@ -110,11 +115,8 @@ def minimax(state, endTime):
 		if new_v > v:
 			pos = i
 			v = new_v
-		else:
-			i += 1
+		i += 1
 	return state.children[pos]
-
-	#find max for all actions
 
 def max_value(state,a,b,endTime):
 	currTime = int(round(time.time() * 1000))
@@ -143,7 +145,20 @@ def min_value(state,a,b,endTime):
 		return v
 
 if __name__ == "__main__":
-	#example(None)
-	the_game(1000)
+	if len(sys.argv) == 2:
+		if is_numerical(sys.argv[1]):
+			print "Welcome to reversi! You play as white (⬤ )"
+			print sys.argv[1], "ms"
+			the_game(int(sys.argv[1]))
+		else:
+			print "Usage: reversi.py x, where x is numerical"
+			print "Or: reversi.py. Program will use default value 1000 ms"
+	elif len(sys.argv) == 1:
+		print "Welcome to reversi! You play as white (W)"
+		print "Default value: 1000 ms"
+		the_game(1000)
+	else:
+		print "Usage: reversi.py x, where x is numerical"
+		print "Or: reversi.py. Program will use default value 1000 ms"
 	
 	

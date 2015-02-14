@@ -1,10 +1,16 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from copy import deepcopy
 DIRECTIONS = [(1,-1),(1,0),(1,1),(0,1),(-1,-1),(-1,0),(-1,1),(0,-1)]
 BLACK, WHITE = 1,-1
 class Board:
-	def __init__(self, b):
+	def __init__(self, b, depth):
 		#utility is nbr of black tiles minus nbr of white tiles. AI is black.
 		self.utility = 0
+		self.white_moves = None
+		self.black_moves = None
+		self.placed_bricks = 0
+		self.starting_depth = depth
 		#Deep copy, for silly reasons
 		self.board = deepcopy(b)
 
@@ -18,24 +24,32 @@ class Board:
 		return chr(num + 97)
 
 	def print_board(self):
-		print "  a b c d e f g h"
-		i = 1
-		for row in self.board:
-			print i,
-			i +=1
-			for col in row:
-				if col == BLACK:
-					print "B",
-				elif col == WHITE:
-					print "W",
-				else:
-					print col,
-			print "\n"
-		print "\n"
+		print "   a   b   c   d   e   f   g   h"
+		print " ╔═══╦═══╦═══╦═══╦═══╦═══╦═══╦═══╗"
+
+		for row in range(0,8):
+			s = str(row+1) + "║"
+			for col in range(0,8):
+				if self.board[row][col] == 0:
+					s += "   "
+				elif  self.board[row][col] == -1:
+					s += " ⬤ " #white
+				elif self.board[row][col] == 1:
+					s += " ◯ " #black
+				s += "║"
+			print s
+			if row < 7:
+				print " ╠═══╬═══╬═══╬═══╬═══╬═══╬═══╬═══╣"
+			else:
+				print " ╚═══╩═══╩═══╩═══╩═══╩═══╩═══╩═══╝"
 
 	def find_legal_moves(self, player):
 		"""For every brick that current player owns, search in all directions.
 			A legal placement is if there is an empty space following consecutive opponent bricks"""
+		if player == BLACK and self.black_moves != None:
+			return self.black_moves
+		elif self.white_moves != None:
+			return self.white_moves
 		legal_moves = []
 		for row in range(8):
 			for col in range(8):
@@ -60,6 +74,10 @@ class Board:
 								break
 						if bracket == 1 and (new_row,new_col) not in legal_moves:
 							legal_moves.append((new_row,new_col))
+		if player == BLACK:
+			self.black_moves = legal_moves
+		else:
+			self.white_moves = legal_moves
 		return legal_moves
 
 
@@ -69,18 +87,41 @@ class Board:
 			return 0
 		self.board[row][col] = player
 		self.flip_bricks(player,row,col)
+		self.white_moves = None
+		self.black_moves = None
 		self.calc_utility()
 		return 1
 
 	def calc_utility(self):
-		w, b = 0,0
+		#End-game evaluation function
+		if self.starting_depth > 40:
+			w, b = 0,0
+			for row in range(8):
+				for col in range(8):
+					if self.board[row][col] == WHITE:
+						w += 1
+					if self.board[row][col] == BLACK:
+						b += 1
+			self.utility = b - w
+		#early/mid-game evaluation function
+		else:
+			self.utility = len(self.find_legal_moves(BLACK)) - len(self.find_legal_moves(WHITE))
+			self.utility += self.board[0][0] * 100
+			self.utility += self.board[7][0] * 100
+			self.utility += self.board[0][7] * 100
+			self.utility += self.board[7][7] * 100
+
+	def calc_winner(self):
+		winner = 0
 		for row in range(8):
-			for col in range(8):
-				if self.board[row][col] == WHITE:
-					w += 1
-				if self.board[row][col] == BLACK:
-					b += 1
-		self.utility = b - w
+			for col in range(8): 
+				winner += self.board[row][col]
+		if winner > 0:
+			return "BLACK"
+		elif winner < 0:
+			return "WHITE"
+		else:
+			return "DRAW"
 
 	def flip_bricks(self,player,row,col):
 		for tup in DIRECTIONS:
