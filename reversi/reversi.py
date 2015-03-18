@@ -6,8 +6,8 @@ import time
 import re
 import sys
 
-DIRECTIONS = [(1,-1),(1,0),(1,1),(0,1),(-1,-1),(-1,0),(-1,1),(0,-1)]
-BLACK, WHITE = 1,-1
+DIRECTIONS = [(1, -1), (1, 0), (1, 1), (0, 1), (-1, -1), (-1, 0), (-1, 1), (0, -1)]
+BLACK, WHITE = 1, -1
 
 
 def set_up():
@@ -19,7 +19,7 @@ def set_up():
     board[4][3] = BLACK
     board[3][4] = BLACK
 
-    b = Board(board,4)
+    b = Board(board, 4)
     return b
 
 
@@ -33,12 +33,12 @@ def is_numerical(i):
 
 def correct_input(s):
     if len(s) == 2:
-        if re.search(r"[a-h][1-8]",s):
+        if re.search(r"[a-h][1-8]", s):
             return 1
 
 
 def the_game(time_limit):
-    current_board= set_up()
+    current_board = set_up()
     current_board.print_board()
     break_cond = 0
     depth = 4
@@ -51,7 +51,7 @@ def the_game(time_limit):
                 info = raw_input('Make your move\n')
                 while not correct_input(info) :
                     info = raw_input('Wrong input. Use XY where X is a-h, Y is 1-8\n')
-                brick_placed = current_board.place_brick(WHITE,int(info[1])-1,ord(info[0])-97)
+                brick_placed = current_board.place_brick(WHITE, int(info[1]) - 1, ord(info[0]) - 97)
                 if brick_placed == 0:
                     print "Illegal move"
             depth += 1
@@ -74,7 +74,7 @@ def the_game(time_limit):
     if winner == "DRAW":
         print "It's a draw"
     else:
-        print "Winner is",winner
+        print "Winner is", winner
 
 
 def play_turn(root,time_limit,depth):
@@ -82,22 +82,22 @@ def play_turn(root,time_limit,depth):
     best_choice = None
 
     while int(round(time.time() * 1000)) < end_time:
-        tree_builder(root,end_time,depth)
-        current_choice = mini_max(root,end_time)
+        tree_builder(root, end_time, depth)
+        current_choice = mini_max(root, end_time)
         if int(round(time.time() * 1000)) < end_time:
             best_choice = current_choice
     return best_choice
 
 
-def tree_builder(node,endTime,depth):
+def tree_builder(node, end_time, depth):
     curr_time = int(round(time.time() * 1000))
-    if curr_time > endTime:
+    if curr_time > end_time:
         return
     if len(node.children) == 0:
-        build_two_levels(node,depth)
+        build_two_levels(node, depth)
     else:
         for child in node.children:
-            tree_builder(child,endTime,depth)
+            tree_builder(child, end_time, depth)
 
 
 def build_two_levels(node,depth):
